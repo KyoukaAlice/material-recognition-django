@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>材料识别系统 · 项目介绍</title>
+<!--
+  GitHub Pages 入口页。
+
+  Pages 的发布源若指向仓库根目录（/(root)），根目录下没有 index.html 就会 404；
+  这里做一个跳转，把访问者送到 docs/index.html 的项目介绍页。
+  若把 Pages 的发布目录直接设为 /docs，则本文件不参与渲染，也不会有副作用。
+-->
+<meta http-equiv="refresh" content="0; url=docs/index.html">
+<link rel="canonical" href="docs/index.html">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(150deg, #0d2a42, #1b5c8a);
+    color: #cfe3f1; font: 15px/1.7 "Microsoft YaHei", system-ui, sans-serif;
+    text-align: center; padding: 24px;
+  }
+  a { color: #f5b942; }
+  .box { max-width: 460px; }
+  .mark {
+    width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 16px;
+    background: linear-gradient(140deg, #16588a, #2b7cb8);
+    display: grid; place-items: center;
+  }
+  .mark svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 3 7l9 5 9-5-9-5z"/>
+        <path d="M3 17l9 5 9-5"/>
+        <path d="M3 12l9 5 9-5"/>
+      </svg>
+    </div>
+    <p>正在跳转到项目介绍页…</p>
+    <p>如果没有自动跳转，请<a href="docs/index.html">点击这里</a>。</p>
+  </div>
+  <script>location.replace("docs/index.html");</script>
+</body>
+</html>
