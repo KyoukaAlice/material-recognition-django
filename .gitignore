@@ -1,0 +1,22 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.cache/
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+*.log
+.idea/
+.vscode/
+predictions.csv
+
+# 模型权重体积较大，不入库（见 models/README.md 与仓库 Releases）
+models/*.pth
+models/*.pt
+models/*.onnx
+
+# 允许保留目录说明文件
+!models/README.md
+!sample_images/README.md

@@ -1,0 +1,66 @@
+{% extends "recognition/base.html" %}
+{% block title %}用户管理 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>用户管理</h1>
+  <p>管理系统账号与权限。出于安全考虑，用户密码以加密摘要形式存储，不可查看。</p>
+</div>
+
+<section class="card">
+  <h2 class="card-title">查询条件</h2>
+  <form method="get" action="{% url 'recognition:user_list' %}" class="filter-bar">
+    <input type="hidden" name="f" value="1">
+    {% include "recognition/_field.html" with field=form.user_id %}
+    {% include "recognition/_field.html" with field=form.username %}
+    {% include "recognition/_field.html" with field=form.permission %}
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary btn-sm">查询用户</button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'recognition:user_list' %}">重置条件</a>
+      <a class="btn btn-success btn-sm" href="{% url 'recognition:user_create' %}">添加用户</a>
+      <a class="btn btn-danger btn-sm" href="{% url 'recognition:user_delete' %}">删除用户</a>
+    </div>
+  </form>
+  {% if applied %}<p class="help">已应用筛选条件，命中 {{ total }} 个用户。</p>{% endif %}
+</section>
+
+<section class="card">
+  {% if page_obj.object_list %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>ID</th><th>用户名</th><th>权限</th><th>最近登录</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+          {% for u in page_obj.object_list %}
+            <tr>
+              <td class="muted">{{ u.pk }}</td>
+              <td>{{ u.username }}</td>
+              <td>
+                {% if u.is_superuser or u.profile.is_admin %}
+                  <span class="badge badge-admin">管理员</span>
+                {% else %}
+                  <span class="badge badge-user">普通用户</span>
+                {% endif %}
+              </td>
+              <td class="nowrap">
+                {% if u.last_login %}{{ u.last_login|date:"Y-m-d H:i:s" }}{% else %}<span class="muted">—</span>{% endif %}
+              </td>
+              <td class="nowrap">
+                <a class="btn btn-danger btn-xs"
+                   href="{% url 'recognition:user_delete' %}?username={{ u.username|urlencode }}">删除</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "recognition/_pagination.html" %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">👤</div>
+      <p>{% if applied %}未查询到相关信息。{% else %}暂无用户。{% endif %}</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

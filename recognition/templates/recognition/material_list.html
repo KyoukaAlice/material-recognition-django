@@ -1,0 +1,59 @@
+{% extends "recognition/base.html" %}
+{% block title %}材料管理 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>材料管理</h1>
+  <p>材料库共 {{ total }} 类建筑材料，包含材料简介、产地与库存信息。</p>
+</div>
+
+<section class="card">
+  <div class="filter-actions" style="border-top:none;padding-top:0">
+    <a class="btn btn-accent btn-sm" href="{% url 'recognition:material_update' %}">修改数据</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'recognition:identify' %}">返回识别</a>
+  </div>
+</section>
+
+<section class="card">
+  {% if page_obj.object_list %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>编号</th><th>材料名称</th><th>中文名</th><th>产地</th><th>库存</th><th>材料简介</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+          {% for m in page_obj.object_list %}
+            <tr>
+              <td class="muted">{{ m.material_id }}</td>
+              <td><code>{{ m.name }}</code></td>
+              <td>{{ m.label }}</td>
+              <td>{{ m.location|default:"N/A" }}</td>
+              <td>{{ m.count|default:"N/A" }}</td>
+              <td class="info-cell">
+                {% if m.info %}
+                  <details>
+                    <summary>查看简介</summary>
+                    <p>{{ m.info }}</p>
+                  </details>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td class="nowrap">
+                <a class="btn btn-accent btn-xs"
+                   href="{% url 'recognition:material_update' %}?material={{ m.material_id }}">修改</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "recognition/_pagination.html" %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <p>暂无材料数据。</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

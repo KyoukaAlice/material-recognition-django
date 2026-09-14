@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>材料识别系统 · 基于 ResNet50 的建筑材料图像识别</title>
+<meta name="description" content="基于 ResNet50 与 Django 的建筑材料图像识别与管理系统——毕业设计项目展示">
+<style>
+:root{
+  --primary:#16588a; --primary-dark:#0f3f66; --primary-light:#2b7cb8;
+  --accent:#e8930c; --accent-light:#f5b942;
+  --ink:#16232e; --ink-soft:#3f5567; --muted:#6f8496;
+  --line:#e3eaf2; --bg:#f4f7fb; --card:#fff;
+  --radius:16px;
+  --shadow:0 4px 16px rgba(22,35,46,.08),0 1px 3px rgba(22,35,46,.05);
+  --shadow-lg:0 20px 48px rgba(6,22,36,.22);
+  --font:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono","Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font:16px/1.7 var(--font);color:var(--ink);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:var(--primary-light)}
+code{font-family:var(--mono);font-size:.88em;background:#eef3f8;color:#35516b;padding:2px 7px;border-radius:5px}
+
+/* ---------- 顶部导航 ---------- */
+.nav{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(12px);
+  background:rgba(255,255,255,.88);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{max-width:1120px;margin:0 auto;padding:0 24px;height:62px;display:flex;align-items:center;gap:26px}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;color:var(--ink)}
+.nav-mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,var(--primary),var(--primary-light));display:grid;place-items:center;flex:none}
+.nav-mark svg{width:17px;height:17px}
+.nav-links{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.nav-links a{padding:7px 13px;border-radius:8px;font-size:14px;color:var(--ink-soft);font-weight:500}
+.nav-links a:hover{background:#eef4fa;color:var(--primary);text-decoration:none}
+
+/* ---------- Hero ---------- */
+.hero{
+  position:relative;overflow:hidden;color:#fff;
+  background:linear-gradient(150deg,#0d2a42 0%,#16456b 48%,#1b5c8a 100%);
+  padding:78px 24px 86px;
+}
+.hero::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(700px 340px at 12% 8%,rgba(43,124,184,.42),transparent 65%),
+    radial-gradient(620px 320px at 88% 92%,rgba(232,147,12,.26),transparent 62%);
+}
+.hero-inner{position:relative;max-width:1120px;margin:0 auto}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.24);
+  padding:5px 15px;border-radius:999px;font-size:13px;letter-spacing:.5px;margin-bottom:22px;
+}
+.hero-badge .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade80}
+.hero h1{font-size:clamp(30px,4.6vw,50px);line-height:1.2;margin:0 0 18px;letter-spacing:-.5px;font-weight:800}
+.hero h1 .grad{background:linear-gradient(100deg,var(--accent-light),#ffd88a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p.lead{font-size:clamp(15px,1.7vw,18px);color:#c5dcee;max-width:720px;margin:0 0 32px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:12px 26px;border-radius:11px;font-size:15px;font-weight:700;
+  border:1px solid transparent;transition:transform .14s,box-shadow .2s,background .2s;
+}
+.btn:hover{transform:translateY(-2px);text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#3d2600;box-shadow:0 8px 24px rgba(232,147,12,.36)}
+.btn-primary:hover{color:#3d2600}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-ghost:hover{background:rgba(255,255,255,.18);color:#fff}
+.btn svg{width:17px;height:17px}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:20px;max-width:820px}
+.stat{padding:18px 20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px}
+.stat b{display:block;font-size:27px;font-weight:800;line-height:1.2;color:#fff}
+.stat span{font-size:12.5px;color:#a8cbe4;letter-spacing:.6px}
+
+/* ---------- 通用区块 ---------- */
+.section{max-width:1120px;margin:0 auto;padding:70px 24px}
+.section.alt{background:#fff;max-width:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.section.alt > .section-inner{max-width:1120px;margin:0 auto}
+.sec-tag{
+  display:inline-block;font-size:12.5px;font-weight:800;letter-spacing:2.2px;
+  color:var(--accent);text-transform:uppercase;margin-bottom:10px;
+}
+.sec-title{font-size:clamp(23px,3vw,33px);margin:0 0 12px;letter-spacing:-.4px;font-weight:800}
+.sec-desc{color:var(--muted);max-width:680px;margin:0 0 40px;font-size:15.5px}
+
+/* ---------- 卡片网格 ---------- */
+.grid{display:grid;gap:20px}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(268px,1fr))}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.feature{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 24px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s;
+}
+.feature:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.feature-icon{
+  width:46px;height:46px;border-radius:13px;display:grid;place-items:center;margin-bottom:16px;
+  background:linear-gradient(140deg,#e8f2fa,#d7e8f6);color:var(--primary);
+}
+.feature-icon svg{width:23px;height:23px}
+.feature h3{font-size:16.5px;margin:0 0 8px}
+.feature p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.75}
+
+/* ---------- 流程 ---------- */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;counter-reset:s}
+.step{
+  position:relative;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:30px 24px 26px;box-shadow:var(--shadow);
+}
+.step::before{
+  counter-increment:s;content:counter(s);
+  position:absolute;top:-15px;left:24px;width:34px;height:34px;border-radius:11px;
+  background:linear-gradient(140deg,var(--primary),var(--primary-light));color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:15px;
+  box-shadow:0 6px 16px rgba(22,88,138,.3);
+}
+.step h3{font-size:16px;margin:12px 0 8px}
+.step p{margin:0;color:var(--ink-soft);font-size:14.5px}
+
+/* ---------- 图片展示 ---------- */
+.shot{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);
+}
+.shot img{width:100%;display:block;background:#fff}
+.shot figcaption{padding:15px 20px;font-size:14px;color:var(--ink-soft);border-top:1px solid var(--line)}
+.shot figcaption b{color:var(--ink)}
+
+/* ---------- 指标 ---------- */
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;margin-bottom:36px}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.metric b{display:block;font-size:26px;font-weight:800;color:var(--primary);line-height:1.25}
+.metric span{font-size:13px;color:var(--muted)}
+
+/* ---------- 技术栈 ---------- */
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.tech{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px;
+}
+.tech b{font-size:15px}
+.tech span{font-size:13px;color:var(--muted);font-family:var(--mono)}
+
+/* ---------- 架构图 ---------- */
+.arch{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px;box-shadow:var(--shadow)}
+.layer{display:grid;gap:12px;margin-bottom:14px}
+.layer:last-child{margin-bottom:0}
+.layer-label{font-size:12.5px;font-weight:800;letter-spacing:1.6px;color:var(--muted);text-transform:uppercase}
+.layer-boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.lbox{
+  border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:13.5px;
+  background:#f8fbfe;text-align:center;font-weight:600;color:var(--ink-soft);
+}
+.lbox.hi{background:linear-gradient(140deg,#e8f2fa,#d9e9f7);border-color:#bcd9ef;color:var(--primary-dark)}
+.lbox.acc{background:linear-gradient(140deg,#fef6e6,#fdeccd);border-color:#f5d78e;color:#8a6100}
+.arrow{text-align:center;color:#b9cbdb;font-size:19px;line-height:1;margin:-4px 0 8px}
+
+/* ---------- 代码块 ---------- */
+pre{
+  background:#122232;color:#d6e4f0;border-radius:14px;padding:22px 24px;overflow-x:auto;
+  font-family:var(--mono);font-size:13.5px;line-height:1.85;margin:0;
+  box-shadow:var(--shadow);
+}
+pre .c{color:#6b8ba4}
+pre .k{color:#7fd1ff}
+pre .s{color:#a5e88a}
+
+/* ---------- 提示框 ---------- */
+.note{
+  border-radius:14px;padding:20px 24px;border:1px solid;display:flex;gap:16px;
+  align-items:flex-start;margin-bottom:24px;font-size:14.5px;
+}
+.note-info{background:#eff9fc;border-color:#a9dceb;color:#0e5f75}
+.note-warn{background:#fffbeb;border-color:#f5dfa3;color:#8a6100}
+.note svg{width:21px;height:21px;flex:none;margin-top:2px}
+.note p{margin:0}
+.note b{display:block;margin-bottom:3px}
+
+/* ---------- 页脚 ---------- */
+.foot{
+  background:#0f2233;color:#8aa9c2;padding:44px 24px;font-size:14px;
+}
+.foot-inner{max-width:1120px;margin:0 auto;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.foot a{color:#a8cbe4}
+.foot a:hover{color:#fff}
+
+@media (max-width:720px){
+  .hero{padding:54px 20px 62px}
+  .section{padding:52px 20px}
+  .nav-links{display:none}
+  .hero-actions .btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top">
+      <span class="nav-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2 3 7l9 5 9-5-9-5z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/>
+        </svg>
+      </span>
+      材料识别系统
+    </a>
+    <div class="nav-links">
+      <a href="#features">功能特性</a>
+      <a href="#flow">识别流程</a>
+      <a href="#demo">效果展示</a>
+      <a href="#metrics">模型性能</a>
+      <a href="#stack">技术栈</a>
+      <a href="#arch">系统架构</a>
+      <a href="#start">快速开始</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span>毕业设计项目 · 已开源</div>
+    <h1>基于 <span class="grad">ResNet50</span> 的建筑材料<br>图像识别与管理系统</h1>
+    <p class="lead">
+      面向施工现场材料管理场景，使用迁移学习训练卷积神经网络，实现 9 类常见建筑材料的自动识别；
+      配套完整的 Web 管理系统，涵盖用户权限、识别日志、材料档案与错误反馈闭环。
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#demo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+        </svg>
+        查看识别效果
+      </a>
+      <a class="btn btn-ghost" href="#start">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/>
+        </svg>
+        本地运行
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><b>9</b><span>材料类别</span></div>
+      <div class="stat"><b>ResNet50</b><span>骨干网络</span></div>
+      <div class="stat"><b>224×224</b><span>输入尺寸</span></div>
+      <div class="stat"><b>Django 4.2</b><span>Web 框架</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 功能特性 ================= -->
+<section class="section" id="features">
+  <span class="sec-tag">Features</span>
+  <h2 class="sec-title">系统功能</h2>
+  <p class="sec-desc">不只是模型推理，而是一套可落地的材料管理业务系统。</p>
+  <div class="grid grid-3">
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></div>
+      <h3>材料图像识别</h3>
+      <p>支持本地上传、浏览器摄像头实时拍摄、内置样例三种输入方式，输出材料类别与置信度分布。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg></div>
+      <h3>材料档案管理</h3>
+      <p>9 类材料的简介、产地、库存集中维护，识别结果自动关联材料档案一并展示。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
+      <h3>识别日志审计</h3>
+      <p>完整记录每次识别与反馈，支持按用户、操作类型、材料名称、时间区间组合检索。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5"/><circle cx="12" cy="15" r="3"/></svg></div>
+      <h3>错误反馈闭环</h3>
+      <p>用户可以标注正确类别，反馈记录与原识别结果关联保存，为后续模型迭代积累数据。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 11h5"/></svg></div>
+      <h3>用户与权限</h3>
+      <p>管理员 / 普通用户两级权限，服务端强制校验；密码经加密摘要存储，支持自助注册。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="M8 15l4-5 3 3 4-6"/></svg></div>
+      <h3>概率可视化</h3>
+      <p>识别结果以柱状图呈现全部类别概率分布，并支持导出 PNG 用于报告与答辩材料。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 识别流程 ================= -->
+<section class="section alt" id="flow">
+  <div class="section-inner">
+    <span class="sec-tag">Workflow</span>
+    <h2 class="sec-title">识别流程</h2>
+    <p class="sec-desc">从图像输入到材料档案展示，全过程自动化完成。</p>
+    <div class="steps">
+      <div class="step">
+        <h3>提交图像</h3>
+        <p>用户上传本地图片、调用摄像头拍摄，或直接选择内置样例图片。</p>
+      </div>
+      <div class="step">
+        <h3>预处理与推理</h3>
+        <p>图像统一缩放至 256 后中心裁剪 224×224，按 ImageNet 统计量归一化，输入 ResNet50 前向计算。</p>
+      </div>
+      <div class="step">
+        <h3>结果与档案关联</h3>
+        <p>Softmax 输出各类别概率，取最大者为识别结果，自动关联材料简介、产地与库存并写入日志。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 效果展示 ================= -->
+<section class="section" id="demo">
+  <span class="sec-tag">Demo</span>
+  <h2 class="sec-title">识别效果</h2>
+  <p class="sec-desc">以下为系统对真实样本的推理输出，由模型直接生成。</p>
+
+  <div class="grid grid-2">
+    <figure class="shot" style="margin:0">
+      <img src="images/demo_copper_pipes.png" alt="铜管识别结果与概率分布">
+      <figcaption><b>铜管（copper_pipes）</b> · 置信度 100.00% —— 左侧为输入图像，右侧为全部 9 个类别的概率分布</figcaption>
+    </figure>
+    <figure class="shot" style="margin:0">
+      <img src="images/demo_glass_wool.png" alt="玻璃棉识别结果与概率分布">
+      <figcaption><b>玻璃棉（glass_wool）</b> · 置信度 100.00% —— 同类材料外观相近时仍可正确区分</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= 模型性能 ================= -->
+<section class="section alt" id="metrics">
+  <div class="section-inner">
+    <span class="sec-tag">Performance</span>
+    <h2 class="sec-title">模型训练与性能</h2>
+    <p class="sec-desc">
+      采用 ImageNet 预训练权重迁移学习，AdamW 优化器，学习率 1e-3，权重衰减 1e-4，
+      批量大小 16，训练轮数 50，训练集 / 验证集 / 测试集按 8 : 1 : 1 划分。
+    </p>
+
+    <div class="metric-row">
+      <div class="metric"><b>9</b><span>输出类别数</span></div>
+      <div class="metric"><b>360</b><span>样本总量</span></div>
+      <div class="metric"><b>50</b><span>训练轮数</span></div>
+      <div class="metric"><b>ResNet50</b><span>约 25.6M 参数</span></div>
+    </div>
+
+    <div class="grid grid-2">
+      <figure class="shot" style="margin:0">
+        <img src="images/accuracy_curve.png" alt="准确率曲线">
+        <figcaption><b>准确率曲线</b> · 训练集与验证集准确率随轮次变化</figcaption>
+      </figure>
+      <figure class="shot" style="margin:0">
+        <img src="images/loss_curve.png" alt="损失曲线">
+        <figcaption><b>损失曲线</b> · 交叉熵损失收敛过程</figcaption>
+      </figure>
+      <figure class="shot" style="margin:0">
+        <img src="images/confusion_matrix.png" alt="混淆矩阵">
+        <figcaption><b>混淆矩阵</b> · 验证集上各类别的判别情况（对数刻度）</figcaption>
+      </figure>
+      <figure class="shot" style="margin:0">
+        <img src="images/class_distribution.png" alt="类别分布">
+        <figcaption><b>类别分布</b> · 各材料类别在训练集与验证集中的样本数量</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 技术栈 ================= -->
+<section class="section" id="stack">
+  <span class="sec-tag">Tech Stack</span>
+  <h2 class="sec-title">技术栈</h2>
+  <p class="sec-desc">全部组件均为开源方案，可离线部署。</p>
+  <div class="stack">
+    <div class="tech"><b>深度学习框架</b><span>PyTorch 2.2.2</span></div>
+    <div class="tech"><b>视觉模型库</b><span>torchvision 0.17.2</span></div>
+    <div class="tech"><b>网络结构</b><span>ResNet50（迁移学习）</span></div>
+    <div class="tech"><b>Web 框架</b><span>Django 4.2 LTS</span></div>
+    <div class="tech"><b>数据库</b><span>SQLite / MySQL</span></div>
+    <div class="tech"><b>图像处理</b><span>Pillow</span></div>
+    <div class="tech"><b>图表绘制</b><span>Matplotlib</span></div>
+    <div class="tech"><b>前端</b><span>原生 HTML / CSS / JS</span></div>
+  </div>
+</section>
+
+<!-- ================= 系统架构 ================= -->
+<section class="section alt" id="arch">
+  <div class="section-inner">
+    <span class="sec-tag">Architecture</span>
+    <h2 class="sec-title">系统架构</h2>
+    <p class="sec-desc">典型的三层结构：表现层、业务层与数据 / 算法层。</p>
+
+    <div class="arch">
+      <div class="layer">
+        <div class="layer-label">表现层 · 浏览器</div>
+        <div class="layer-boxes">
+          <div class="lbox">识别页面</div>
+          <div class="lbox">材料管理</div>
+          <div class="lbox">日志查询</div>
+          <div class="lbox">用户管理</div>
+          <div class="lbox">摄像头采集</div>
+        </div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="layer">
+        <div class="layer-label">业务层 · Django</div>
+        <div class="layer-boxes">
+          <div class="lbox hi">URL 路由</div>
+          <div class="lbox hi">视图 View</div>
+          <div class="lbox hi">表单校验 Form</div>
+          <div class="lbox hi">权限控制</div>
+          <div class="lbox hi">模板渲染</div>
+        </div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="layer">
+        <div class="layer-label">算法层与数据层</div>
+        <div class="layer-boxes">
+          <div class="lbox acc">ResNet50 推理</div>
+          <div class="lbox acc">图像预处理</div>
+          <div class="lbox acc">概率可视化</div>
+          <div class="lbox">ORM 模型</div>
+          <div class="lbox">文件存储</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 快速开始 ================= -->
+<section class="section" id="start">
+  <span class="sec-tag">Get Started</span>
+  <h2 class="sec-title">本地运行</h2>
+  <p class="sec-desc">Windows 下双击 <code>runserver.cmd</code> 即可完成环境准备、建表与数据初始化。</p>
+
+  <div class="note note-info">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>
+    </svg>
+    <p>
+      <b>关于在线演示</b>
+      本页是项目展示页。完整的识别功能需要运行 Python 服务（PyTorch 推理 + Django 后端），
+      而 GitHub Pages 只能托管静态文件，无法运行服务端程序，因此请按下方步骤在本地启动。
+    </p>
+  </div>
+
+  <pre><span class="c"># 1. 获取代码</span>
+git clone https://github.com/&lt;你的用户名&gt;/material-recognition-django.git
+cd material-recognition-django
+
+<span class="c"># 2. 一键启动（自动创建虚拟环境、安装依赖、建表、导入数据）</span>
+<span class="k">runserver.cmd</span>
+
+<span class="c"># 3. 浏览器访问</span>
+<span class="s">http://127.0.0.1:8000</span>
+
+<span class="c"># 默认账号：Admin / 123456</span>
+
+<span class="c"># ---- 手动方式 ----</span>
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py import_legacy_data
+python manage.py runserver</pre>
+
+  <div class="note note-warn" style="margin-top:26px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/>
+    </svg>
+    <p>
+      <b>模型权重</b>
+      训练好的 <code>best_model.pth</code>（约 90 MB）未纳入 Git 仓库，
+      请从本仓库的 <b>Releases</b> 页面下载后放入 <code>models/</code> 目录。
+    </p>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <div>
+      <div style="color:#fff;font-weight:700;margin-bottom:6px">材料识别系统</div>
+      <div>基于 ResNet50 的建筑材料图像识别与管理系统</div>
+    </div>
+    <div>
+      <div style="color:#fff;font-weight:700;margin-bottom:6px">技术栈</div>
+      <div>PyTorch · torchvision · Django · SQLite</div>
+    </div>
+    <div>
+      <div style="color:#fff;font-weight:700;margin-bottom:6px">相关链接</div>
+      <div><a href="#top">返回顶部</a> · <a href="#start">运行说明</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

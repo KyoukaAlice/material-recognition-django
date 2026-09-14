@@ -1,0 +1,40 @@
+{% extends "recognition/base.html" %}
+{% block title %}登录 · {{ site_name }}{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <form class="card auth-card" method="post" action="{% url 'recognition:login' %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 3 7l9 5 9-5-9-5z"/>
+        <path d="M3 17l9 5 9-5"/>
+        <path d="M3 12l9 5 9-5"/>
+      </svg>
+    </div>
+    <h1 class="auth-title">{{ site_name }}</h1>
+    <p class="auth-sub">MATERIAL RECOGNITION SYSTEM</p>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    {% include "recognition/_field.html" with field=form.username %}
+    {% include "recognition/_field.html" with field=form.password %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">登 录</button>
+    </div>
+
+    <p class="auth-foot">
+      还没有账号？<a href="{% url 'recognition:register' %}">立即注册</a>
+    </p>
+  </form>
+
+  <p class="auth-meta">基于 ResNet50 的建筑材料图像识别系统</p>
+</div>
+{% endblock %}

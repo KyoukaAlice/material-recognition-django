@@ -1,0 +1,109 @@
+{% load static %}<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+{% if user.is_authenticated %}
+  {% with url_name=request.resolver_match.url_name %}
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{% url 'recognition:identify' %}">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 3 7l9 5 9-5-9-5z"/>
+            <path d="M3 17l9 5 9-5"/>
+            <path d="M3 12l9 5 9-5"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          {{ site_name }}
+          <small>Material Recognition</small>
+        </span>
+      </a>
+
+      <nav class="nav">
+        <a href="{% url 'recognition:identify' %}"
+           class="{% if url_name == 'identify' or url_name == 'home' or url_name == 'identify_result' or url_name == 'graph' or url_name == 'feedback' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+          </svg>
+          材料识别
+        </a>
+        <a href="{% url 'recognition:material_list' %}"
+           class="{% if url_name == 'material_list' or url_name == 'material_update' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/>
+          </svg>
+          材料管理
+        </a>
+        {% if is_admin %}
+          <a href="{% url 'recognition:log_list' %}"
+             class="{% if url_name == 'log_list' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/>
+            </svg>
+            查看日志
+          </a>
+          <a href="{% url 'recognition:user_list' %}"
+             class="{% if url_name == 'user_list' or url_name == 'user_create' or url_name == 'user_delete' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/>
+              <path d="M17 11h5M19.5 8.5v5"/>
+            </svg>
+            用户管理
+          </a>
+        {% endif %}
+      </nav>
+
+      <div class="userbox">
+        <span class="who">
+          <span class="avatar">{{ user.username|first|upper }}</span>
+          {{ user.username }}
+          {% if is_admin %}<span class="badge badge-admin">管理员</span>
+          {% else %}<span class="badge badge-user">普通用户</span>{% endif %}
+        </span>
+        <form method="post" action="{% url 'recognition:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-red btn-sm">退出登录</button>
+        </form>
+      </div>
+    </div>
+  </header>
+  {% endwith %}
+{% endif %}
+
+<main class="container">
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+{% if user.is_authenticated %}
+  <footer class="footer">
+    <span>{{ site_name }} · Django {{ django_version }}</span>
+    <span>
+      模型：{{ model_status.filename }}（{% if model_status.exists %}已加载{% else %}缺失{% endif %}）
+      · 类别数：{{ model_status.class_count }}
+      · 推理设备：{{ model_status.device }}
+    </span>
+  </footer>
+{% endif %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

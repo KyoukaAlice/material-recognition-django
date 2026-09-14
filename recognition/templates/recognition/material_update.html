@@ -1,0 +1,28 @@
+{% extends "recognition/base.html" %}
+{% block title %}更新数据 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>更新数据</h1>
+  <p>选择材料后填写需要修改的产地或库存，留空的项将保持原值不变。</p>
+</div>
+
+<div class="auth-wrap single">
+  <form class="card auth-card" method="post" action="{% url 'recognition:material_update' %}" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    {% include "recognition/_field.html" with field=form.material %}
+    {% include "recognition/_field.html" with field=form.location %}
+    {% include "recognition/_field.html" with field=form.count %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">保存修改</button>
+      <a class="btn btn-ghost btn-block" href="{% url 'recognition:material_list' %}">返回材料列表</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

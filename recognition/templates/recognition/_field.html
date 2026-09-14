@@ -1,0 +1,7 @@
+{% comment %}单个表单字段的统一渲染：标签 + 控件 + 帮助文字 + 错误提示{% endcomment %}
+<div class="field{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+  {{ field.errors }}
+</div>

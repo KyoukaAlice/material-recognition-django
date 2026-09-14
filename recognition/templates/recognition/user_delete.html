@@ -1,0 +1,31 @@
+{% extends "recognition/base.html" %}
+{% block title %}{{ title }} · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  <p>可按用户名或用户 ID 删除账号。为防止误操作，系统做了必要的安全限制。</p>
+</div>
+
+<div class="auth-wrap single">
+  <form class="card auth-card" method="post" action="{% url 'recognition:user_delete' %}" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    {% include "recognition/_field.html" with field=form.field %}
+    {% include "recognition/_field.html" with field=form.value %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-danger btn-lg btn-block">确认删除</button>
+      <a class="btn btn-ghost btn-block" href="{% url 'recognition:user_list' %}">返回用户列表</a>
+    </div>
+
+    <div class="alert alert-warning" style="margin-top:18px;margin-bottom:0">
+      不允许删除当前登录的账号；也不允许删除系统中最后一个管理员。
+    </div>
+  </form>
+</div>
+{% endblock %}

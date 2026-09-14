@@ -1,0 +1,22 @@
+# 材料识别系统 —— 运行依赖
+#
+# CPU 版 torch（推荐，约 250 MB，识别单张图片足够）：
+#   pip install -r requirements.txt
+#
+# 如需 GPU 推理（原项目用 torch.cuda），把最后两行换成 CUDA 版：
+#   pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cu121
+
+Django==4.2.16
+Pillow>=10.0,<12.0
+matplotlib>=3.7,<4.0
+
+# numpy 必须 < 2：torch 2.2.2 是按 NumPy 1.x 编译的，装到 NumPy 2.x 会出现
+# "Failed to initialize NumPy: _ARRAY_API not found"，transforms.ToTensor() 直接失效。
+numpy<2
+
+# 推理引擎（与 best_model.pth 保存时的版本对应）
+torch==2.2.2
+torchvision==0.17.2
+
+# 仅 tools/smoke_test.py 需要；不跑冒烟测试可以不装
+requests>=2.28

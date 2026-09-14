@@ -1,0 +1,136 @@
+{% extends "recognition/base.html" %}
+{% load static %}
+{% block title %}材料识别 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>材料识别</h1>
+  <p>上传图片、调用摄像头拍摄，或直接选用示例图片，系统将自动判别材料类别并给出置信度。</p>
+</div>
+
+<div class="grid-2">
+  {# ---------------- 左：图片来源 ---------------- #}
+  <section class="card">
+    <h2 class="card-title">图片来源</h2>
+
+    {# action 必须显式指向识别页：结果页 URL 为 /identify/result/<id>/，
+       若不写 action，表单会 POST 到结果页，导致“换图后仍显示旧结果”。 #}
+    <form method="post" enctype="multipart/form-data"
+          action="{% url 'recognition:identify' %}" id="identify-form" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div class="source-block">
+        <h3>上传本地图片</h3>
+        {% include "recognition/_field.html" with field=form.image %}
+        <p class="help">支持 JPG / PNG / BMP / GIF / WebP，单张不超过 10 MB。</p>
+      </div>
+
+      <div class="source-block">
+        <h3>使用摄像头拍摄</h3>
+        <div class="camera-box">
+          <video id="camera-video" playsinline muted hidden></video>
+          <img id="camera-preview" class="preview" alt="拍摄预览" hidden>
+          <div id="camera-placeholder" class="camera-placeholder">
+            点击下方「打开摄像」并允许授权后<br>即可在此实时预览画面
+          </div>
+        </div>
+        <div class="camera-actions">
+          <button type="button" class="btn btn-success btn-sm" id="btn-camera-open">打开摄像</button>
+          <button type="button" class="btn btn-accent btn-sm" id="btn-camera-shot" disabled>拍摄照片</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-camera-close" disabled>关闭摄像</button>
+        </div>
+        <p class="help" id="camera-status">
+          受浏览器安全策略限制，摄像头仅在 <code>localhost</code> 或 HTTPS 环境下可用。
+        </p>
+        {{ form.capture }}
+      </div>
+
+      <div class="source-block">
+        <h3>使用示例图片</h3>
+        {% include "recognition/_field.html" with field=form.sample %}
+        <p class="help">内置各类建筑材料的样例图片，可快速体验识别效果。</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg">开始识别</button>
+      </div>
+    </form>
+  </section>
+
+  {# ---------------- 右：识别结果 ---------------- #}
+  <section class="card">
+    <h2 class="card-title">识别结果</h2>
+
+    {% if log %}
+      <div class="result-top">
+        {% if log.img_url %}
+          <img class="result-img" src="{{ log.img_url }}" alt="识别图片">
+        {% else %}
+          <div class="result-img placeholder">原图已不可用</div>
+        {% endif %}
+        <div class="result-meta">
+          <p class="result-line">
+            <span class="result-key">识别结果：</span>
+            <strong class="result-class">{{ log.material_label }}</strong>
+          </p>
+          <p class="result-line">
+            <span class="result-key">置 信 度：</span>
+            <strong class="result-conf">{{ log.confidence|default:"—" }}</strong>
+          </p>
+          <p class="result-line muted small">
+            类别标签 <code>{{ log.material_name }}</code>
+          </p>
+          <p class="result-line muted small">
+            {{ log.datetime|date:"Y-m-d H:i:s" }} · 操作人 {{ log.username }} · 记录 #{{ log.pk }}
+          </p>
+          <div class="result-actions">
+            <a class="btn btn-info btn-sm" href="{% url 'recognition:graph' log.pk %}">查看概率详情</a>
+            <a class="btn btn-violet btn-sm" href="{% url 'recognition:feedback' log.pk %}">反馈识别错误</a>
+          </div>
+        </div>
+      </div>
+
+      {% if confidence_rows %}
+        <h3 class="sub-title">各类别置信度</h3>
+        <div class="bars">
+          {% for name, label, value in confidence_rows %}
+            <div class="bar-row{% if name == log.material_name %} is-top{% endif %}">
+              <span class="bar-label" title="{{ name }}">{{ label }}</span>
+              <span class="bar-track"><span class="bar-fill" style="width: {{ value }}%"></span></span>
+              <span class="bar-value">{{ value|floatformat:2 }}%</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <h3 class="sub-title">材料信息</h3>
+      {% if material %}
+        <div class="material-info">
+          <p class="material-text">{{ material.info|default:"暂无简介" }}</p>
+          <p><span class="tag">产地</span>{{ material.location|default:"N/A" }}</p>
+          <p><span class="tag">数量</span>{{ material.count|default:"N/A" }}</p>
+        </div>
+      {% else %}
+        <div class="alert alert-warning">
+          材料库中暂无类别 <code>{{ log.material_name }}</code> 的档案信息，请先在「材料管理」中补充。
+        </div>
+      {% endif %}
+
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>尚未进行识别</p>
+        <p class="small">请从左侧任选一种方式提供图片，然后点击「开始识别」</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/identify.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "recognition/base.html" %}
+{% block title %}反馈识别错误 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>反馈识别错误</h1>
+  <p>如果本次识别结果不正确，请选择正确的材料类别，系统将记录这次纠正用于后续分析。</p>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2 class="card-title">本次识别</h2>
+    {% if log.img_url %}
+      <img class="result-img wide" src="{{ log.img_url }}" alt="识别图片">
+    {% endif %}
+    <p class="result-line" style="margin-top:16px">
+      <span class="result-key">识别结果：</span>
+      <strong class="result-class">{{ log.material_label }}</strong>
+      <span class="muted">（{{ log.material_name }}）</span>
+    </p>
+    <p class="result-line">
+      <span class="result-key">置 信 度：</span>
+      <strong class="result-conf">{{ log.confidence|default:"—" }}</strong>
+    </p>
+    <p class="result-line muted small">识别时间：{{ log.datetime|date:"Y-m-d H:i:s" }}</p>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">提交正确结果</h2>
+    <form method="post" action="{% url 'recognition:feedback' log.pk %}" novalidate>
+      {% csrf_token %}
+      {% include "recognition/_field.html" with field=form.true_name %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">提交反馈</button>
+        <a class="btn btn-ghost" href="{% url 'recognition:identify_result' log.pk %}">返回</a>
+      </div>
+    </form>
+    <p class="help">
+      反馈会作为一条新记录保存，并关联到原识别记录；原始识别结果保持不变，便于统计模型准确率。
+    </p>
+  </section>
+</div>
+{% endblock %}

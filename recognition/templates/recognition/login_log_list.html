@@ -1,0 +1,54 @@
+{% extends "recognition/base.html" %}
+{% block title %}用户日志 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>用户日志</h1>
+  <p>系统登录、登出、注册与账号新增的操作记录。</p>
+</div>
+
+<section class="card">
+  <h2 class="card-title">查询条件</h2>
+  <form method="get" action="{% url 'recognition:login_log_list' %}" class="filter-bar">
+    <input type="hidden" name="f" value="1">
+    {% include "recognition/_field.html" with field=form.username %}
+    {% include "recognition/_field.html" with field=form.action %}
+    {% include "recognition/_field.html" with field=form.start_date %}
+    {% include "recognition/_field.html" with field=form.end_date %}
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary btn-sm">查询日志</button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'recognition:login_log_list' %}">重置条件</a>
+      <a class="btn btn-info btn-sm" href="{% url 'recognition:log_list' %}">识别日志</a>
+    </div>
+  </form>
+  {% if applied %}<p class="help">已应用筛选条件，命中 {{ total }} 条记录。</p>{% endif %}
+</section>
+
+<section class="card">
+  {% if page_obj.object_list %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>编号</th><th>用户</th><th>操作</th><th>时间</th></tr>
+        </thead>
+        <tbody>
+          {% for log in page_obj.object_list %}
+            <tr>
+              <td class="muted">{{ log.pk }}</td>
+              <td>{{ log.username }}</td>
+              <td><span class="badge badge-identify">{{ log.get_action_display }}</span></td>
+              <td class="nowrap">{{ log.datetime|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "recognition/_pagination.html" %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🕒</div>
+      <p>{% if applied %}未查询到相关信息。{% else %}暂无登录记录。{% endif %}</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

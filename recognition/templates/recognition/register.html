@@ -1,0 +1,37 @@
+{% extends "recognition/base.html" %}
+{% block title %}注册 · {{ site_name }}{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{% block content %}
+<div class="auth-wrap single">
+  <form class="card auth-card" method="post" action="{% url 'recognition:register' %}" novalidate>
+    {% csrf_token %}
+
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="3.6"/>
+        <path d="M4.5 21a7.5 7.5 0 0 1 15 0"/>
+      </svg>
+    </div>
+    <h1 class="auth-title">注册新账号</h1>
+    <p class="auth-sub">CREATE ACCOUNT</p>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    {% include "recognition/_field.html" with field=form.username %}
+    {% include "recognition/_field.html" with field=form.password1 %}
+    {% include "recognition/_field.html" with field=form.password2 %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">注 册</button>
+    </div>
+
+    <p class="auth-foot">
+      已有账号？<a href="{% url 'recognition:login' %}">返回登录</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

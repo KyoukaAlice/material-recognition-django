@@ -1,0 +1,29 @@
+{% extends "recognition/base.html" %}
+{% block title %}{{ title }} · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  <p>创建新的系统账号并指定其使用权限。</p>
+</div>
+
+<div class="auth-wrap single">
+  <form class="card auth-card" method="post" action="{% url 'recognition:user_create' %}" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    {% include "recognition/_field.html" with field=form.username %}
+    {% include "recognition/_field.html" with field=form.password1 %}
+    {% include "recognition/_field.html" with field=form.password2 %}
+    {% include "recognition/_field.html" with field=form.permission %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">确认添加</button>
+      <a class="btn btn-ghost btn-block" href="{% url 'recognition:user_list' %}">返回用户列表</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

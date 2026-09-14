@@ -1,0 +1,48 @@
+{% extends "recognition/base.html" %}
+{% block title %}概率详情 · {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>材料识别概率详情</h1>
+  <p>记录 #{{ log.pk }} · {{ log.datetime|date:"Y-m-d H:i:s" }} · 操作人 {{ log.username }}</p>
+</div>
+
+<section class="card">
+  <div class="graph-head">
+    <div>
+      <p class="result-line">
+        <span class="result-key">识别结果：</span>
+        <strong class="result-class">{{ log.material_label }}</strong>
+      </p>
+      <p class="result-line">
+        <span class="result-key">置 信 度：</span>
+        <strong class="result-conf">{{ log.confidence|default:"—" }}</strong>
+        <span class="muted small">类别标签 <code>{{ log.material_name }}</code></span>
+      </p>
+    </div>
+    <div class="result-actions" style="margin-top:0">
+      <a class="btn btn-accent btn-sm" href="{% url 'recognition:graph_png' log.pk %}?download=1">下载图表</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'recognition:identify_result' log.pk %}">返回识别结果</a>
+    </div>
+  </div>
+
+  <img class="graph-img" src="{% url 'recognition:graph_png' log.pk %}" alt="材料识别概率分布图">
+
+  {% if confidence_rows %}
+    <h3 class="sub-title">各类别置信度明细</h3>
+    <div class="bars">
+      {% for name, label, value in confidence_rows %}
+        <div class="bar-row{% if name == log.material_name %} is-top{% endif %}">
+          <span class="bar-label" title="{{ name }}">{{ label }}</span>
+          <span class="bar-track"><span class="bar-fill" style="width: {{ value }}%"></span></span>
+          <span class="bar-value">{{ value|floatformat:2 }}%</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-warning">
+      该记录未保存各类别概率明细，无法绘制概率分布图。
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

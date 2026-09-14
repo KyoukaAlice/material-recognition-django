@@ -1,0 +1,17 @@
+# 统一换行符，避免在不同机器 clone 后出现批处理无法执行的问题
+# （Windows 的 .cmd/.bat 必须是 CRLF，否则 cmd.exe 会解析错乱）
+* text=auto eol=lf
+
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制文件不做任何换行符转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pth binary
+*.pt binary
+*.onnx binary
+*.sqlite3 binary
