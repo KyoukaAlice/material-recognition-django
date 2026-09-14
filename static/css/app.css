@@ -42,6 +42,11 @@
 
 * { box-sizing: border-box; }
 
+/* hidden 属性必须优先于任何 display 声明。
+   否则像 .camera-box img { display: block } 这样的规则会让空 <img> 显示成
+   “裂开的图片”占位图标。 */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -549,9 +554,17 @@ body.auth-body {
 }
 body.auth-body .container {
   display: flex;
+  /* 必须用纵向排列：消息条与登录卡片若并排，会一起被当成 flex 项排成一行，
+     提示信息跑到左侧、登录卡片也跟着偏左，看起来就是“没有居中”。 */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 22px;
+}
+body.auth-body .messages {
+  width: 100%;
+  max-width: 470px;
+  margin-bottom: 2px;
 }
 .auth-wrap { width: 100%; max-width: 430px; }
 .auth-card {

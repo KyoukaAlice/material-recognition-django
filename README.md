@@ -31,7 +31,7 @@
 
 ## 项目展示
 
-项目介绍页（GitHub Pages）：**https://你的用户名.github.io/material-recognition-django/**
+项目介绍页（GitHub Pages）：**https://kyoukaalice.github.io/material-recognition-django/**
 
 > **请注意**：GitHub Pages 只能托管静态文件，**无法运行 Django 服务与 PyTorch 推理**，
 > 因此该页面是项目展示页而非在线 Demo。要实际使用识别功能，请按 [快速开始](#快速开始) 在本地启动。
@@ -284,6 +284,11 @@ python manage.py predict_folder path/to/folder --out predictions.csv --write-log
 
 # 从 SQL 文件导入数据（可重复执行，自动判重）
 python manage.py import_legacy_data --flush --dry-run
+
+# 清空日志并把记录编号重置为从 1 开始
+python manage.py reset_logs
+python manage.py reset_logs --identify-only    # 只清识别日志
+python manage.py reset_logs --login-only       # 只清登录日志
 ```
 
 ---
@@ -323,6 +328,11 @@ python manage.py import_legacy_data --flush --dry-run
 
 **Q：图表页第一次打开很慢？**
 Matplotlib 首次导入需要约 1~2 秒，之后会走缓存。
+
+**Q：删了日志后，新记录的编号还是接着以前的大数字？**
+这是数据库自增主键的正常行为——删除数据不会让计数器归零。
+执行 `python manage.py reset_logs` 可在清空日志的同时把编号重置回 1，
+方便演示与答辩时编号连续美观。
 
 **Q：如何切换到 MySQL？**
 编辑 `config/settings.py`，注释 SQLite 配置、启用下方 MySQL 配置，

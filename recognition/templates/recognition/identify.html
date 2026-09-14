@@ -13,8 +13,11 @@
   <section class="card">
     <h2 class="card-title">图片来源</h2>
 
-    {# action 必须显式指向识别页：结果页 URL 为 /identify/result/<id>/，
-       若不写 action，表单会 POST 到结果页，导致“换图后仍显示旧结果”。 #}
+    {% comment %}
+      action 必须显式指向识别页：结果页 URL 为 /identify/result/<id>/，
+      若不写 action，表单会 POST 到结果页，导致“换图后仍显示旧结果”。
+      注意：Django 的 {# #} 只能注释单行，多行必须用 comment 标签。
+    {% endcomment %}
     <form method="post" enctype="multipart/form-data"
           action="{% url 'recognition:identify' %}" id="identify-form" novalidate>
       {% csrf_token %}
