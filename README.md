@@ -201,8 +201,11 @@ material_recognition_django/
 
 ### 获取模型权重
 
-训练好的权重 `best_model.pth`（约 90 MB）**未纳入 Git 仓库**，请从本仓库
-**Releases** 页面下载后放入 `models/` 目录：
+训练好的权重 `best_model.pth`（约 90 MB）**未纳入 Git 仓库**，请从 Release 下载：
+
+**https://github.com/KyoukaAlice/material-recognition-django/releases/download/v1.0.0/best_model.pth**
+
+下载后放入 `models/` 目录：
 
 ```
 material_recognition_django/
